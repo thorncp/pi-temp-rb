@@ -4,8 +4,6 @@ set -e
 
 ssh pi@pi.local mkdir -p '~/pi-temp'
 rsync -av -e ssh --delete \
-  --exclude 'dev_prime.rb' \
-  --include '*.rb' \
-  --include 'Gemfile*' \
-  --exclude '*' \
+  --exclude '.git*' \
+  --exclude '*.db' \
   ./ pi@pi.local:~/pi-temp/
