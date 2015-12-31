@@ -26,6 +26,23 @@ class Database
       temperature_readings
   SQL
 
+  STATS_INTERVAL = 60 * 60 # hourly
+  STATS_CUTOFF = 60 * 60 * 24 * 7 # past week
+
+  STATS_STATEMENT = <<-SQL
+    SELECT
+      avg(voltage) AS avereage_voltage,
+      avg(celsius) AS avereage_celsius,
+      avg(fahrenheit) AS avereage_fahrenheit,
+      round(read_at / :interval) * :interval AS read_at_interval
+    FROM
+      temperature_readings
+    WHERE
+      read_at > strftime('%s', 'now') - :cutoff
+    GROUP BY
+      read_at_interval
+  SQL
+
   def insert(reading)
     @db.execute(
       INSERT_STATEMENT,
@@ -38,12 +55,17 @@ class Database
 
   def all
     @db.execute(SELECT_STATEMENT).map do |row|
-      Reading.new(
-        voltage: row[0],
-        temperature_celsius: row[1],
-        temperature_fahrenheit: row[2],
-        read_at: Time.at(row[3]),
-      )
+      row_to_reading(row)
+    end
+  end
+
+  def stats(interval: STATS_INTERVAL, cutoff: STATS_CUTOFF)
+    @db.execute(
+      STATS_STATEMENT,
+      interval: interval,
+      cutoff: cutoff,
+    ).map do |row|
+      row_to_reading(row)
     end
   end
 
@@ -58,5 +80,14 @@ class Database
         read_at DATETIME
       )
     SQL
+  end
+
+  def row_to_reading(row)
+    Reading.new(
+      voltage: row[0],
+      temperature_celsius: row[1],
+      temperature_fahrenheit: row[2],
+      read_at: Time.at(row[3]),
+    )
   end
 end
