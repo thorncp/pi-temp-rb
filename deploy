@@ -1,0 +1,10 @@
+# /bin/sh
+
+set -e
+
+ssh pi@pi.local mkdir -p '~/pi-temp'
+rsync -av -e ssh --delete \
+  --include '*.rb' \
+  --include 'Gemfile*' \
+  --exclude '*' \
+  ./ pi@pi.local:~/pi-temp/
