@@ -1,5 +1,5 @@
 require "pi_piper"
-require "sqlite3"
+require_relative "database"
 
 SECONDS_TO_SLEEP_BETWEEN_READINGS = 30
 
@@ -44,11 +44,26 @@ adc_pin = 0
 
 loop do
   reading = read_adc(adc_pin, clock, adc_in, adc_out, cs)
-  voltage = reading * (3.3 / 1024.0)
-  temperature_celsius = (voltage - 0.5) * 100.0
-  temperatue_fahrenheit = (temperature_celsius * 9.0 / 5.0) + 32.0
 
-  puts "#{voltage.round(2)}V - #{temperature_celsius.round(2)}C - #{temperatue_fahrenheit.round(2)}F"
+  voltage = reading * (3.3 / 1024.0)
+  celsius = (voltage - 0.5) * 100.0
+  fahrenheit = (celsius * 9.0 / 5.0) + 32.0
+
+  reading = Reading.new(
+    voltage: voltage,
+    temperature_celsius: celsius,
+    temperature_fahrenheit: fahrenheit,
+    read_at: Time.now,
+  )
+
+  Database.new.insert(reading)
+
+  puts([
+    reading.read_at.strftime("%Y-%m-%d %H:%M:%S"),
+    "#{reading.voltage.round(4)}V",
+    "#{reading.temperature_celsius.round(2)}C",
+    "#{reading.temperature_fahrenheit.round(2)}F",
+  ].join(" - "))
 
   sleep SECONDS_TO_SLEEP_BETWEEN_READINGS
 end
