@@ -1,0 +1,28 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>House Temperature</title>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+  <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+</head>
+
+<body>
+  <div id="temp-chart"></div>
+  <script>
+    new Chartist.Line('#temp-chart', {
+      labels: <%= readings.map { |r| r.read_at.strftime("%m/%d<br/>%H:30") } %>,
+      series: [
+        <%= readings.map(&:temperature_fahrenheit) %>
+      ]
+    }, {
+      fullWidth: true,
+      chartPadding: {
+        right: 40
+      }
+    });
+  </script>
+</body>
+</html>
